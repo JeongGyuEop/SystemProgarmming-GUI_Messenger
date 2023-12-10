@@ -9,7 +9,7 @@ Widget::Widget(QWidget *parent) :
 {
     ui->setupUi(this);
     setLayout(ui->gridLayout);
-    setWindowTitle("HOKAO TALK");
+    setWindowTitle("20171042 정규엽, 20183148 천상훈");
 }
 Widget::~Widget()
 {
