@@ -1,3 +1,4 @@
+#include <iostream>
 #include "widget.h"
 #include "ui_widget.h"
 #include <QRegExp>
@@ -57,12 +58,42 @@ void Widget::on_messageLineEdit_returnPressed()
     on_sendButton_clicked();
 }
 
-// 전송할 파일 열기
 void Widget::on_openFile_clicked()
 {
     fileName = QFileDialog::getOpenFileName(this); // 전송할 파일의 경로 저장
     ui->messageFilePath->setText(fileName); // 경로를 ui에 출력
 }
+
 void Widget::on_sendFile_clicked()
 {
+    if (fileName.isEmpty())
+    {
+        // 파일이 선택되지 않았을 경우
+        qDebug() << "파일이 선택되지 않았습니다.";
+        return;
+    }
+
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly))
+    {
+        // 파일을 열 수 없는 경우 오류
+        qDebug() << "파일을 열 수 없습니다:" << file.errorString();
+        return;
+    }
+
+    // 파일 내용 읽기
+    QByteArray fileData = file.readAll();
+    file.close();
+
+    // 먼저 파일 크기를 전송
+    QString fileSizeMessage = QString("/fileSize:%1\n").arg(fileData.size());
+    socket->write(fileSizeMessage.toUtf8());
+    socket->waitForBytesWritten(); // 크기 메시지가 전송될 때까지 대기
+
+    // 실제 파일 데이터 전송
+    socket->write(fileData);
+    socket->waitForBytesWritten(); // 파일 데이터가 전송될 때까지 대기
+
+    // 파일 전송 성공에 대한 알림 (선택 사항)
+    qDebug() << "파일 전송이 성공적으로 완료되었습니다.";
 }
